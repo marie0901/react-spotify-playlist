@@ -1,21 +1,19 @@
+import uniq from 'lodash/uniqBy';
+
 const defaultState = {
   fetchSongsPending: true,
   songPlaying: false,
   timeElapsed: 0,
   songId: 0,
   viewType:'songs',
-  songPaused: true
+  songPaused: true,
+  songs: []
 };
 
 export const songsReducer = (state = defaultState, action) => {
 
   switch (action.type) {
 
-  case "UPDATE_VIEW_TYPE":
-    return {
-      ...state,
-      viewType: action.view
-    };
 
   case "FETCH_SONGS_PENDING":
     return {
@@ -39,83 +37,46 @@ export const songsReducer = (state = defaultState, action) => {
       fetchSongsPending: false
     };
 
-  case "SEARCH_SONGS_PENDING":
-    return {
-      ...state,
-      searchSongsPending: true
-    };
-
-  case "SEARCH_SONGS_SUCCESS":
-    return {
-      ...state,
-      songs: action.songs,
-      searchSongsError: false,
-      searchSongsPending: false,
-      viewType: 'search'
-    };
-
-  case "SEARCH_SONGS_ERROR":
-    return {
-      ...state,
-      searchSongsError: true,
-      searchSongsPending: false
-    };
-
-  case "FETCH_RECENTLY_PLAYED_PENDING":
-    return {
-      ...state,
-      fetchSongsPending: true
-    };
-
-  case "FETCH_RECENTLY_PLAYED_SUCCESS":
-    return {
-      ...state,
-      songs: action.songs,
-      viewType: 'Recently Played',
-      fetchSongsError: false,
-      fetchSongsPending: false
-    };
-
-  case "FETCH_RECENTLY_PLAYED_ERROR":
-    return {
-      ...state,
-      fetchSongsError: true,
-      fetchSongsPending: false
-    };
-
   case "FETCH_PLAYLIST_SONGS_PENDING":
     return {
       ...state,
       fetchPlaylistSongsPending: true
     };
 
+
+  case "REMOVE_SONGS_WITHOUT_ACTIVE_PLAYLIST":
+//  console.log("REMOVE_SONGS_WITHOUT_ACTIVE_PLAYLIST", state.songs.songs[0].playlists.reduce((result,playlist)=>result && playlist.Active) );
+  console.log("REMOVE_SONGS_WITHOUT_ACTIVE_PLAYLIST", !!state.songs[0].playlists.reduce((result,playlist)=>result && playlist.Active) )
+    return {
+      ...state,
+      songs: state.songs.filter((song)=> !song.playlists.reduce((result,playlist)=>result && playlist.Active) )
+    };
+
+
+
   case "FETCH_PLAYLIST_SONGS_SUCCESS":
 
-let  songs = [
+    let  songs = [
           ...state.songs,
           ...action.songs
         ];
 
-
-    map = new Map;
+//Here is an example of getting unique list without lodash
+let map = new Map;
 let    result = [];
-
-    songs.forEach(a => {
-      console.log('aaa',a.track.id);
+    songs.forEach(function (a) {
       let o = map.get(a.track.id);
       if (!o) {
           o = { trackId: a.track.id };
-          map.set(a.track.id, a);
+          map.set(a.track.id, a.playlists);
           result.push(a);
-      }
-
+      } else {
+          let song_playlists = result.find((song)=>(song.track.id === a.track.id)).playlists.concat(a.playlists);
+          result.find((song)=>(song.track.id === a.track.id)).playlists = uniq(song_playlists);
+        }
     });
 
     songs = result;
-console.log('sonnngs', result);
-
-
-
     return {
       ...state,
       songs: songs,

@@ -1,10 +1,7 @@
-
-
-//////////////////////////////////////////////////////           Component.js ????????????????????????????????????
 import React, { Component } from 'react';
-// import './UserPlaylists.css';
 import { connect } from "react-redux";
-import { fetchPlaylistsMenu, fetchPlaylistSongs, displayPlaylist } from '../actions/playlistActions';
+import { fetchPlaylistsMenu,  togglePlaylist } from '../actions/playlistActions';
+import { fetchPlaylistSongs, removeSongsWithoutActivePlaylist } from '../actions/songActions';
 import { updateHeaderTitle } from '../actions/uiActions';
 
 class UserPlaylists extends Component {
@@ -19,20 +16,24 @@ class UserPlaylists extends Component {
 
     return this.props.playlistMenu.map(playlist => {
       const getPlaylistSongs = () => {
-        console.log('111111111');
-        this.props.fetchPlaylistSongs(playlist.owner.id, playlist.id, this.props.token);
-        this.props.updateHeaderTitle(playlist.name);
-        this.props.displayPlaylist(playlist);
+        if (!playlist.Active) {
+          this.props.fetchPlaylistSongs(playlist.owner.id, playlist.id, this.props.token);
+        } else {
+          this.props.removeSongsWithoutActivePlaylist();
+        }
 
+        this.props.updateHeaderTitle(playlist.name);
+        this.props.togglePlaylist(playlist);
       };
 
       return (
 
           <li key={ playlist.id }>
-            <input id = { playlist.id } type='checkbox' onClick={ getPlaylistSongs } />
-            <label htmlFor = { playlist.id } className='btn text-dark nav-list-checkbox active'>
+            <label htmlFor = { playlist.id } className = {playlist.Active ? 'btn text-dark nav-list-checkbox active' : 'btn text-dark nav-list-checkbox' }>
               { playlist.name }
             </label>
+            <input id = { playlist.id } type='checkbox' className='nav-list-checkbox-input' onClick={ getPlaylistSongs } />
+
           </li>
       );
     });
@@ -44,7 +45,7 @@ class UserPlaylists extends Component {
 
     return (
       <div className='user-playlist-container'>
-        <h3 className='user-playlist-header'>Playlists</h3>
+        <h3 className='navbar-fixed-top'>Playlists</h3>
         {
           this.props.playlistMenu && this.renderPlaylists()
         }
@@ -64,13 +65,12 @@ const mapStateToProps = (state) => {
       };
 };
 
-
-
 const mapDispatchToProps = (dispatch, props) => ({
   fetchPlaylistsMenu: (userId, accessToken) => dispatch(fetchPlaylistsMenu(userId, accessToken)),
   fetchPlaylistSongs: (userId, playlistId, accessToken) => dispatch(fetchPlaylistSongs(userId, playlistId, accessToken)),
-  displayPlaylist: (playlist) => dispatch(displayPlaylist(playlist)),
-  updateHeaderTitle: (title)  => dispatch(updateHeaderTitle(title))
+  togglePlaylist: (playlist) => dispatch(togglePlaylist(playlist)),
+  updateHeaderTitle: (title)  => dispatch(updateHeaderTitle(title)),
+  removeSongsWithoutActivePlaylist: () => dispatch (removeSongsWithoutActivePlaylist())
 
 });
 export default connect(mapStateToProps, mapDispatchToProps)(UserPlaylists);

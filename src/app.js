@@ -16,12 +16,8 @@ import LoadingPage from './components/LoadingPage';
 import DashboardPage from './components/DashboardPage';
 
 import './styles/sidenav.css';
-import './styles/dashboard.css';
 import './styles/shell.css';
 
-// import 'normalize.css/normalize.css';
-// import './styles/styles.scss';
-// import './styles/styles.css';
 
 const store = configureStore();
 const jsx = (

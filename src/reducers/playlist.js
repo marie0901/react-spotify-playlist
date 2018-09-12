@@ -25,15 +25,32 @@ export const playlistReducer = (state = {playlists: [], displayedPlaylists: []},
       ]
     };
 
-    case "DISPLAY_PLAYLIST":
-    console.log('action.playlist ',action.playlist);
-      return {
-        ...state,
-        displayedPlaylists: [
-          ...state.displayedPlaylists,
-          action.playlist
-        ]
-      };
+    case "TOGGLE_PLAYLIST":
+
+      let index = state.displayedPlaylists.findIndex( (el) => (el.id === action.playlist.id))
+
+      if (index === -1) {
+        return {
+          ...state,
+          displayedPlaylists: [
+            ...state.displayedPlaylists,
+            action.playlist
+          ],
+          playlistMenu:
+            state.playlistMenu.map((el)=>{if(el.id === action.playlist.id) {el.Active = true;} return el;})
+          
+        };
+      } else {
+        return {
+          ...state,
+          displayedPlaylists: [
+            ...state.displayedPlaylists.filter((el, idx) => idx !== index)
+          ],
+          playlistMenu:
+            state.playlistMenu.map((el)=>{if(el.id === action.playlist.id) {el.Active = false;} return el;}),
+
+        };
+      }
 
   case "FETCH_PLAYLIST_MENU_ERROR":
     return {

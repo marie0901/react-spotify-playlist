@@ -30,6 +30,9 @@ export const fetchSongs = (accessToken) => {
 
     dispatch(fetchSongsPending());
 
+
+
+
     fetch(request).then(res => {
       if(res.statusText === "Unauthorized") {
         window.location.href = './';
@@ -49,135 +52,59 @@ export const fetchSongs = (accessToken) => {
     }).catch(err => {
       dispatch(fetchSongsError(err));
     });
+
+
+
   };
 };
 
-export const searchSongsPending = () => {
+export const fetchPlaylistSongsPending = () => {
   return {
-    type: 'SEARCH_SONGS_PENDING'
+    type: 'FETCH_PLAYLIST_SONGS_PENDING'
   };
 };
 
-export const searchSongsSuccess = (songs) => {
+export const fetchPlaylistSongsSuccess = (songs, playlistId) => {
   return {
-    type: 'SEARCH_SONGS_SUCCESS',
-    songs
+    type: 'FETCH_PLAYLIST_SONGS_SUCCESS',
+    songs: songs.map((el) => {
+      el.playlists = [playlistId];
+      return el;})
+
   };
 };
 
-export const searchSongsError = () => {
+export const fetchPlaylistSongsError = () => {
   return {
-    type: 'SEARCH_SONGS_ERROR'
+    type: 'FETCH_PLAYLIST_SONGS_ERROR'
   };
 };
 
-export const searchSongs = (searchTerm, accessToken) => {
+export const fetchPlaylistSongs = (userId, playlistId, accessToken) => {
+
   return dispatch => {
-    const request = new Request(`https://api.spotify.com/v1/search?q=${searchTerm}&type=track`, {
+
+    const request = new Request(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
       headers: new Headers({
-        'Authorization': 'Bearer ' + accessToken,
-        'Accept': 'application/json'
+        'Authorization': 'Bearer ' + accessToken.token
       })
     });
 
-    dispatch(searchSongsPending());
-
-    fetch(request).then(res => {
-      if(res.statusText === "Unauthorized") {
-        window.location.href = './';
-      }
-      return res.json();
-    }).then(res => {
-      res.items = res.tracks.items.map(item => {
-        return {
-          track: item
-        };
-      });
-      dispatch(searchSongsSuccess(res.items));
-    }).catch(err => {
-      dispatch(fetchSongsError(err));
-    });
-  };
-};
-
-export const fetchRecentlyPlayedPending = () => {
-  return {
-    type: 'FETCH_RECENTLY_PLAYED_PENDING'
-  };
-};
-
-export const fetchRecentlyPlayedSuccess = (songs) => {
-  return {
-    type: 'FETCH_RECENTLY_PLAYED_SUCCESS',
-    songs
-  };
-};
-
-export const fetchRecentlyPlayedError = () => {
-  return {
-    type: 'FETCH_RECENTLY_PLAYED_ERROR'
-  };
-};
-
-export const fetchRecentlyPlayed = (accessToken) => {
-  return dispatch => {
-    const request = new Request(`https://api.spotify.com/v1/me/player/recently-played`, {
-      headers: new Headers({
-        'Authorization': 'Bearer ' + accessToken
-      })
-    });
-
-    dispatch(fetchRecentlyPlayedPending());
+    dispatch(fetchPlaylistSongsPending());
 
     fetch(request).then(res => {
       return res.json();
     }).then(res => {
-      //remove duplicates from recently played
-      res.items = uniqBy(res.items, (item) => {
-        return item.track.id;
-      });
-      dispatch(fetchRecentlyPlayedSuccess(res.items));
+
+      dispatch(fetchPlaylistSongsSuccess(res.items,playlistId));
     }).catch(err => {
-      dispatch(fetchRecentlyPlayedError(err));
+      dispatch(fetchPlaylistSongsError(err));
     });
-  };
+   };
 };
 
-export const playSong = (song) => {
+export const removeSongsWithoutActivePlaylist =() => {
   return {
-    type: 'PLAY_SONG',
-    song
+    type: 'REMOVE_SONGS_WITHOUT_ACTIVE_PLAYLIST'
   };
-};
-
-export const stopSong = () => {
-  return {
-    type: 'STOP_SONG'
-  };
-};
-
-export const pauseSong = () => {
-  return {
-    type: 'PAUSE_SONG'
-  };
-};
-
-export const resumeSong = () => {
-  return {
-    type: 'RESUME_SONG'
-  };
-};
-
-export const increaseSongTime = (time) => {
-  return {
-    type: 'INCREASE_SONG_TIME',
-    time
-  };
-};
-
-export const updateViewType = (view) => {
-  return {
-    type: 'UPDATE_VIEW_TYPE',
-    view
-  };
-};
+}
